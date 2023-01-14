@@ -1,0 +1,67 @@
+---
+title: "Screening"
+author: "Devi Veytia"
+date: "2023-01-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Import results
+
+```{r load libraries}
+library(revtools)
+library(litsearchr)
+library(metagear)
+```
+
+```{r read in references and de-duplicate}
+# read in results
+refs <- litsearchr::import_results(directory = "data", file= "WOS-results_2023-01-14.bib", verbose = TRUE)
+nrow(refs)
+
+# de-duplicate
+unique_id <- revtools::find_duplicates(refs, to_lower = TRUE)
+# number of duplicates
+nDuplicates <- length(which(duplicated(unique_id)))
+print(paste("There are",nDuplicates, "duplicates from doi matching"))
+
+
+# then also by fuzzy matching -- takes a while so only run in the final search
+unique_id_fuzz <- revtools::find_duplicates(refs, to_lower = TRUE, match_variable = "title",
+                                            match_function = "fuzzdist", method="fuzz_token_sort_ratio")
+length(which(duplicated(unique_id_fuzz)))
+
+
+# no duplicates from either, so assign unique id
+refs$unique_id <- unique_id
+
+
+```
+
+
+```{r set up screening}
+unscreened_refs <- effort_distribute(refs[!duplicated(refs$unique_id),], 
+                                                  reviewers = c("Devi"), effort= c(100), initialize = TRUE,
+                                                  save_split = TRUE, directory = file.path(getwd(),"derived_data"))
+
+buttonOptions <- c("No","E","C","O","Yes")
+buttonKeys <- c("n","e","c","o","y")
+
+```
+
+```{r screen articles, eval = FALSE}
+
+# screen abstracts
+# can save from the gui if partially done and resume by running this chunk
+metagear::abstract_screener(file.path(getwd(),"derived_data","effort_Devi.csv"), aReviewer = "Devi",
+                            abstractColumnName = "abstract", titleColumnName = "title",
+                            theButtons = buttonOptions, keyBindingToButtons = buttonKeys)
+
+```
+
+
+
