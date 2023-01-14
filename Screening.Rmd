@@ -42,6 +42,7 @@ refs$unique_id <- unique_id
 
 ```
 
+# Title + abstract screening
 
 ```{r set up screening}
 unscreened_refs <- effort_distribute(refs[!duplicated(refs$unique_id),], 
@@ -60,6 +61,38 @@ buttonKeys <- c("n","e","c","o","y")
 metagear::abstract_screener(file.path(getwd(),"derived_data","effort_Devi.csv"), aReviewer = "Devi",
                             abstractColumnName = "abstract", titleColumnName = "title",
                             theButtons = buttonOptions, keyBindingToButtons = buttonKeys)
+
+```
+
+```{r summarise screen results}
+
+screened_refs <- read.csv(file.path(getwd(),"derived_data","effort_Devi.csv"))
+
+# number of articles included
+sum(screened_refs$INCLUDE == "Yes")
+
+## 33 articles included
+
+```
+
+```{r create coding sheet}
+
+full_text_code <- subset(screened_refs, INCLUDE == "Yes")
+full_text_code <- full_text_code[,c("STUDY_ID","title","author", "year","doi")]
+
+# add columns for other variables
+code_variables <- c("INCLUDE", "study_type","population_type", "krill_life_stage", "env_drivers", "outcome_description", "outcome_metrics", "outcome_spatial_scale", "outcome_temporal_scale", "empirical_model_used","empirical_temp_coverage", "empirical_spat_coverage")
+
+full_text_code[,code_variables] <- NA
+
+# write to excel
+# writexl::write_xlsx(full_text_code, file.path(getwd(), "derived_data", "full_text_codebook.xlsx"))
+
+
+```
+
+```{r write dois to extract full texts}
+# cat(paste0(full_text_code$doi, collapse=" OR "), file = file.path(getwd(), "derived_data", "dois_for_full_text_retreival.txt"))
 
 ```
 
