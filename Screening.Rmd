@@ -93,7 +93,54 @@ full_text_code[,code_variables] <- NA
 ```
 
 ```{r write dois to extract full texts}
+# write dois to extract full texts
 # cat(paste0(full_text_code$doi, collapse=" OR "), file = file.path(getwd(), "derived_data", "dois_for_full_text_retreival.txt"))
+```
+
+```{r try to extract full text automatically but didn't work}
+# set scihub url to renviron 
+#Sys.setenv(SCIHUB_URL = "https://sci-hub.se/")
+
+# get the dois for the full texts to retreive
+full_text_code <- readxl::read_excel(file.path(getwd(), "derived_data", "full_text_codebook.xlsx"))
+
+source(here::here("R", "utils.R"))
+source(here::here("R", "get-pdf.R"))
+
+# clean dois 
+dois <- c(full_text_code[, "doi"])
+dois <- dois[!is.na(dois)]
+dois <- unlist(dois)
+dois <- paste0("https://doi.org/", "", dois)
+
+
+# set directory to place downloaded pdfs
+path_pdf = here::here("data", "full-texts")
+if(isFALSE(dir.exists(path_pdf))){
+  dir.create(path_pdf, showWarnings = FALSE, recursive = TRUE)
+}
+
+
+# download pdf if possible
+for (i in 1:length(dois)) {
+  
+  if (length(dois[i]) == 1) {
+    
+    # # get filename
+    # fn <- gsub("\\s","_",full_text_code[i,"title"])
+    # fn <- gsub("- ", "-", fn)          # Deal with caesura
+    # fn <- gsub("[[:punct:]]", "_", fn) # Remove punctuation
+    # fn <- gsub("[0-9]", "", fn)        # Remove numbers
+    # fn <- gsub("\\s+", "", fn)        # Remove whitespaces
+    # fn <- gsub("^\\s|\\s$", "", fn)    # Remove whitespaces
+
+    
+    get_pdf(dois[i], path = path_pdf, filename = paste("ID", as.character(full_text_code[i, "STUDY_ID"]), sep="_"))
+    
+    Sys.sleep(sample(seq(0, 5, by = 0.01), 1))
+  }
+}
+
 
 ```
 
